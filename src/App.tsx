@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine } from 'recharts'
-import { TrendingUp, DollarSign, Calendar, AlertTriangle, Info, Target, CheckCircle2, AlertCircle, Circle, Camera } from 'lucide-react'
+import { TrendingUp, DollarSign, Calendar, AlertTriangle, Info, Target, CheckCircle2, AlertCircle, Circle, Camera, FolderOpen } from 'lucide-react'
 
 import { Toolbar } from './components/Toolbar'
 import { NetWorthBanner } from './components/NetWorthBanner'
@@ -68,10 +68,12 @@ export default function App() {
   const [folderHandle, setFolderHandle] = useState<any>(null)
   const [folderPath, setFolderPath] = useState<string>('')
   const [saveStatus, setSaveStatus] = useState<string>('')
+  const [showPermissionPrompt, setShowPermissionPrompt] = useState(false)
+  const [cachedFolderInfo, setCachedFolderInfo] = useState<any>(null)
 
-  // Load cached folder on app startup
+  // Check for cached folder on app startup
   React.useEffect(() => {
-    async function loadCachedFolder() {
+    async function checkCachedFolder() {
       try {
         const cachedId = localStorage.getItem('cached-folder-id')
         if (!cachedId) return
@@ -93,33 +95,68 @@ export default function App() {
             getRequest.onsuccess = async () => {
               const handle = getRequest.result
               if (handle) {
-                // Verify we still have permission to access this folder
+                // Check permission without requesting it
                 const permission = await handle.queryPermission({ mode: 'readwrite' })
-                if (permission === 'granted' || permission === 'prompt') {
-                  if (permission === 'prompt') {
-                    const newPermission = await handle.requestPermission({ mode: 'readwrite' })
-                    if (newPermission !== 'granted') return
-                  }
-                  
+                if (permission === 'granted') {
+                  // Auto-load if permission is already granted
                   setFolderHandle(handle)
                   setFolderPath(name)
                   setSaveStatus('Auto-loaded from cache')
                   setTimeout(() => setSaveStatus(''), 2200)
                   await loadFromFolder(handle)
+                } else if (permission === 'prompt') {
+                  // Show permission prompt for user to click
+                  setCachedFolderInfo({ handle, name, cachedId })
+                  setShowPermissionPrompt(true)
                 }
               }
             }
           } catch (error) {
-            console.warn('Failed to load cached folder:', error)
+            console.warn('Failed to check cached folder:', error)
           }
         }
       } catch (error) {
-        console.warn('Failed to load cached folder:', error)
+        console.warn('Failed to check cached folder:', error)
       }
     }
     
-    loadCachedFolder()
+    checkCachedFolder()
   }, [])
+
+  // Handle permission request with user activation
+  async function requestFolderPermission() {
+    if (!cachedFolderInfo) return
+    
+    try {
+      const { handle, name } = cachedFolderInfo
+      const permission = await handle.requestPermission({ mode: 'readwrite' })
+      
+      if (permission === 'granted') {
+        setFolderHandle(handle)
+        setFolderPath(name)
+        setShowPermissionPrompt(false)
+        setCachedFolderInfo(null)
+        setSaveStatus('Folder access restored')
+        setTimeout(() => setSaveStatus(''), 2200)
+        await loadFromFolder(handle)
+      } else {
+        // Permission denied, clear cache
+        localStorage.removeItem('cached-folder-id')
+        localStorage.removeItem(cachedFolderInfo.cachedId)
+        setShowPermissionPrompt(false)
+        setCachedFolderInfo(null)
+      }
+    } catch (error) {
+      console.warn('Failed to request folder permission:', error)
+      setShowPermissionPrompt(false)
+      setCachedFolderInfo(null)
+    }
+  }
+
+  function dismissPermissionPrompt() {
+    setShowPermissionPrompt(false)
+    setCachedFolderInfo(null)
+  }
 
   const totals = useMemo(() => {
     const assetUSD = assets.reduce((sum, r) => sum + convertToUSD(num(r.amount), r.currency, gbpRate), 0)
@@ -533,6 +570,42 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 text-slate-800">
+      {/* Folder Permission Prompt */}
+      {showPermissionPrompt && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-md mx-4 shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+                <FolderOpen className="w-6 h-6 text-emerald-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg">Restore Folder Access</h3>
+                <p className="text-sm text-slate-600">
+                  Previously connected to: <span className="font-medium">{cachedFolderInfo?.name}</span>
+                </p>
+              </div>
+            </div>
+            <p className="text-slate-700 mb-6">
+              Click "Allow Access" to restore your saved data and continue where you left off.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={requestFolderPermission}
+                className="flex-1 bg-emerald-600 text-white px-4 py-2 rounded-xl hover:bg-emerald-700 font-medium"
+              >
+                Allow Access
+              </button>
+              <button
+                onClick={dismissPermissionPrompt}
+                className="px-4 py-2 rounded-xl border hover:bg-slate-50 font-medium"
+              >
+                Not Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="max-w-6xl mx-auto px-4 py-8 flex gap-4">
         <Sidebar active={activeTab} setActive={setActiveTab} open={sidebarOpen} setOpen={setSidebarOpen} />
         <div className="flex-1">
@@ -744,7 +817,11 @@ export default function App() {
         ) : activeTab === 'anti' ? (
           <AntiSpendingTab entries={antiEntries} setEntries={setAntiEntries} />
         ) : (
-          <GuiltFreeTab guiltFreeData={guiltFreeData} setGuiltFreeData={setGuiltFreeData} fixedCosts={fixed} gbpRate={gbpRate} />
+          <GuiltFreeTab 
+            guiltFreeData={guiltFreeData} 
+            setGuiltFreeData={setGuiltFreeData} 
+            getCurrentMonthData={getCurrentMonthData}
+          />
         )}
         </div>
       </div>

@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react'
 import { currencyFormat, convertToUSD, uid, num } from '../lib/format'
 import { NumberInput } from './NumberInput'
 import { monthKey, nextMonthKey } from '../lib/math'
-import type { Row, SavingsGoal, GuiltFreeData } from '../types'
+import type { Row, SavingsGoal, GuiltFreeData, MonthlyNetWorthData } from '../types'
 
 const defaultLongTermGoals = [
   { id: uid(), name: 'Emergency Fund', amount: 0, type: 'long-term' as const },
@@ -18,16 +18,17 @@ const defaultShortTermGoals = [
 export function GuiltFreeTab({
   guiltFreeData,
   setGuiltFreeData,
-  fixedCosts,
-  gbpRate,
+  getCurrentMonthData,
 }: {
   guiltFreeData: GuiltFreeData[]
   setGuiltFreeData: (data: GuiltFreeData[]) => void
-  fixedCosts: Row[]
-  gbpRate: number
+  getCurrentMonthData: (month: string) => MonthlyNetWorthData
 }) {
   const [currentMonth, setCurrentMonth] = React.useState(monthKey(new Date()))
 
+  // Get month-specific data (same as Net Worth tab)
+  const monthData = getCurrentMonthData(currentMonth)
+  
   const currentData = guiltFreeData.find(d => d.month === currentMonth) || {
     month: currentMonth,
     takeHomePay: 0,
@@ -41,7 +42,11 @@ export function GuiltFreeTab({
     setGuiltFreeData(newData)
   }
 
-  const fixedCostsUSD = fixedCosts.reduce((sum, r) => sum + convertToUSD(num(r.amount), r.currency, gbpRate), 0)
+  // Use the same calculation method as Net Worth tab
+  const fixedCostsUSD = monthData.fixedCosts.reduce((sum, r) => {
+    const gbpRate = monthData.settings.gbpRate
+    return sum + (r.currency === 'USD' ? r.amount : r.amount * gbpRate)
+  }, 0)
   
   const longTermGoals = currentData.savingsGoals.filter(g => g.type === 'long-term')
   const shortTermGoals = currentData.savingsGoals.filter(g => g.type === 'short-term')
@@ -150,7 +155,7 @@ export function GuiltFreeTab({
       <div className="rounded-2xl border bg-slate-50 p-4">
         <h3 className="font-semibold mb-2">Fixed Costs (from Net Worth tab)</h3>
         <div className="text-2xl font-bold text-slate-700">{currencyFormat(fixedCostsUSD)}</div>
-        <div className="text-sm text-slate-600 mt-1">{fixedCosts.length} items</div>
+        <div className="text-sm text-slate-600 mt-1">{monthData.fixedCosts.length} items</div>
         <div className="mt-3 pt-3 border-t border-slate-200">
           <div className="text-sm text-slate-600">Remaining after fixed costs:</div>
           <div className={`text-lg font-semibold ${afterFixedCosts >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>

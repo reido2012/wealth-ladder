@@ -2,7 +2,10 @@
   "name": "net-worth-planner",
   "version": "1.0.0",
   "description": "A comprehensive financial planning tool to track your net worth, anti-spending habits, and guilt-free spending calculations.",
-  "author": "Omar",
+  "author": {
+    "name": "Omar",
+    "email": "oreid52@googlemail.com"
+  },
   "private": false,
   "main": "public/electron.js",
   "homepage": "./",

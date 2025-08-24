@@ -53,21 +53,21 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: macos-build
-          path: dist/*.dmg
+          path: release/*.dmg
           
       - name: Upload artifacts (Windows)
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
           name: windows-build
-          path: dist/*.exe
+          path: release/*.exe
           
       - name: Upload artifacts (Linux)
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
           name: linux-build
-          path: dist/*.AppImage
+          path: release/*.AppImage
 
   release:
     needs: build

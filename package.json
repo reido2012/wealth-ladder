@@ -1,6 +1,6 @@
 {
   "name": "net-worth-planner",
-  "version": "1.0.0",
+  "version": "0.0.3",
   "description": "A comprehensive financial planning tool to track your net worth, anti-spending habits, and guilt-free spending calculations.",
   "author": {
     "name": "Omar",
@@ -36,7 +36,6 @@
     "concurrently": "^9.2.0",
     "electron": "^37.3.1",
     "electron-builder": "^26.0.12",
-    "electron-is-dev": "^3.0.1",
     "postcss": "^8.4.39",
     "tailwindcss": "^3.4.9",
     "typescript": "^5.5.4",

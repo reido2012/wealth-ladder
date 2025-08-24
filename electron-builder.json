@@ -2,10 +2,10 @@
   "appId": "com.omar.networthplanner",
   "productName": "Net Worth Planner",
   "directories": {
-    "output": "dist"
+    "output": "release"
   },
   "files": [
-    "build/**/*",
+    "dist/**/*",
     "public/electron.js",
     "public/preload.js",
     "node_modules/**/*"
@@ -43,22 +43,16 @@
       {
         "target": "AppImage",
         "arch": ["x64"]
-      },
-      {
-        "target": "deb",
-        "arch": ["x64"]
-      },
-      {
-        "target": "rpm",
-        "arch": ["x64"]
       }
     ],
     "icon": "build/icon.svg",
     "desktop": {
-      "Name": "Net Worth Planner",
-      "Comment": "Track your net worth and financial goals",
-      "Categories": "Office;Finance;",
-      "Keywords": "finance;money;budget;planning;wealth;"
+      "entry": {
+        "Name": "Net Worth Planner",
+        "Comment": "Track your net worth and financial goals",
+        "Categories": "Office;Finance;",
+        "Keywords": "finance;money;budget;planning;wealth;"
+      }
     }
   },
   "nsis": {

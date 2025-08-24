@@ -1,6 +1,8 @@
 const { app, BrowserWindow, Menu, shell, dialog } = require('electron');
 const path = require('path');
-const isDev = require('electron-is-dev');
+
+// Simple dev detection without external dependency
+const isDev = !app.isPackaged;
 
 // Add command line switches for better Linux compatibility
 app.commandLine.appendSwitch('--disable-gpu-process-crash-limit');
@@ -35,18 +37,32 @@ function createWindow() {
   // Load the app
   const startUrl = isDev 
     ? 'http://localhost:5173' 
-    : `file://${path.join(__dirname, '../build/index.html')}`;
+    : `file://${path.join(__dirname, '../dist/index.html')}`;
   
-  mainWindow.loadURL(startUrl);
+  console.log('Loading URL:', startUrl);
+  console.log('isDev:', isDev);
+  console.log('__dirname:', __dirname);
+  
+  mainWindow.loadURL(startUrl).catch(err => {
+    console.error('Failed to load URL:', err);
+  });
 
   // Show window when ready to prevent visual flash
   mainWindow.once('ready-to-show', () => {
+    console.log('Window ready to show');
     mainWindow.show();
     
     // Open DevTools in development
     if (isDev) {
       mainWindow.webContents.openDevTools();
     }
+  });
+
+  // Handle load failures
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+    console.error('Failed to load:', errorCode, errorDescription, validatedURL);
+    // Force show window even if load fails
+    mainWindow.show();
   });
 
   // Set up Content Security Policy

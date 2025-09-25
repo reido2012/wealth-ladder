@@ -3,11 +3,17 @@ export const currencyFormat = (n: number) =>
 
 export const num = (x: any) => (isNaN(parseFloat(x)) ? 0 : parseFloat(x));
 
-// Format number with commas for display (e.g., 1000 -> "1,000")
+// Format number with commas for display (e.g., 1000 -> "1,000", 100.53 -> "100.53")
 export const formatNumberWithCommas = (n: number | string) => {
   const numValue = typeof n === 'string' ? parseFloat(n.replace(/,/g, '')) : n;
   if (isNaN(numValue)) return '';
-  return numValue.toLocaleString();
+  
+  // Preserve decimal places - use minimumFractionDigits: 0 to avoid forcing .00 on whole numbers
+  // and maximumFractionDigits: 2 for financial precision
+  return numValue.toLocaleString(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  });
 };
 
 // Parse comma-formatted string back to number (e.g., "1,000" -> 1000)

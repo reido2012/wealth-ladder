@@ -453,8 +453,13 @@ export default function App() {
       .filter(s => s.month < monthEntry.month)
       .pop()
     
-    const previousNetWorth = previousSnapshot ? previousSnapshot.net_worth_usd : 0
-    const actualSave = currentNetWorth - previousNetWorth
+    // Only auto-calculate actualSave if there's a previous snapshot to compare against
+    // For the first month, preserve any manually entered actualSave value
+    let actualSave = monthEntry.actualSave || 0
+    if (previousSnapshot) {
+      const previousNetWorth = previousSnapshot.net_worth_usd
+      actualSave = currentNetWorth - previousNetWorth
+    }
     
     // Update the month entry with actual data
     const updatedEntries = [...entries]

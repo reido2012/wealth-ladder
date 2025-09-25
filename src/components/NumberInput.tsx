@@ -11,12 +11,12 @@ interface NumberInputProps {
 
 export function NumberInput({ value, onChange, placeholder, className, step }: NumberInputProps) {
   const [displayValue, setDisplayValue] = React.useState(() => 
-    value ? formatNumberWithCommas(value) : ''
+    value !== null && value !== undefined && value !== '' ? formatNumberWithCommas(value) : ''
   )
 
   // Update display value when prop changes
   React.useEffect(() => {
-    setDisplayValue(value ? formatNumberWithCommas(value) : '')
+    setDisplayValue(value !== null && value !== undefined && value !== '' ? formatNumberWithCommas(value) : '')
   }, [value])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,11 +32,12 @@ export function NumberInput({ value, onChange, placeholder, className, step }: N
     // Only allow numbers, commas, and decimal points
     const cleanInput = inputValue.replace(/[^0-9,.-]/g, '')
     
-    // Parse the number and format it
-    const numericValue = parseCommaNumber(cleanInput)
-    const formattedValue = formatNumberWithCommas(numericValue)
+    // Don't format during typing - just store the clean input
+    // This allows users to type decimals naturally (e.g., "100.53")
+    setDisplayValue(cleanInput)
     
-    setDisplayValue(formattedValue)
+    // Parse and send the numeric value to parent
+    const numericValue = parseCommaNumber(cleanInput)
     onChange(numericValue)
   }
 

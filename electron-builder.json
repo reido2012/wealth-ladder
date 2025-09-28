@@ -1,6 +1,6 @@
 {
   "appId": "com.omar.networthplanner",
-  "productName": "Net Worth Planner",
+  "productName": "Net-Worth-Planner",
   "directories": {
     "output": "release"
   },
@@ -22,7 +22,8 @@
         "arch": ["x64", "arm64"]
       }
     ],
-    "icon": "build/icon.icns"
+    "icon": "build/icon.icns",
+    "artifactName": "${productName}-${version}-${arch}.${ext}"
   },
   "win": {
     "target": [
@@ -35,7 +36,8 @@
         "arch": ["x64", "ia32"]
       }
     ],
-    "icon": "build/icon.ico"
+    "icon": "build/icon.ico",
+    "artifactName": "${productName}-${version}-${arch}.${ext}"
   },
   "linux": {
     "category": "Office",
@@ -62,7 +64,7 @@
     "createStartMenuShortcut": true
   },
   "appImage": {
-    "artifactName": "${productName}-${version}.AppImage"
+    "artifactName": "${productName}-${version}-${arch}.AppImage"
   },
   "publish": {
     "provider": "github",

@@ -92,8 +92,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.release-upload-url }}
-          asset_path: ./release/Net Worth Planner-${{ github.ref_name }}.AppImage
-          asset_name: Net-Worth-Planner-${{ github.ref_name }}-linux.AppImage
+          asset_path: ./release/Net-Worth-Planner-${{ github.ref_name }}-x86_64.AppImage
+          asset_name: Net-Worth-Planner-${{ github.ref_name }}-linux-x64.AppImage
           asset_content_type: application/octet-stream
 
   # Job 3: Build for Windows
@@ -121,24 +121,24 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
-      - name: Upload Windows NSIS installer
+      - name: Upload Windows NSIS installer (x64)
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.release-upload-url }}
-          asset_path: ./release/Net Worth Planner Setup ${{ github.ref_name }}.exe
-          asset_name: Net-Worth-Planner-${{ github.ref_name }}-windows-setup.exe
+          asset_path: ./release/Net-Worth-Planner-${{ github.ref_name }}-x64.exe
+          asset_name: Net-Worth-Planner-${{ github.ref_name }}-windows-x64-setup.exe
           asset_content_type: application/octet-stream
           
-      - name: Upload Windows portable
+      - name: Upload Windows NSIS installer (ia32)
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.release-upload-url }}
-          asset_path: ./release/Net Worth Planner ${{ github.ref_name }}.exe
-          asset_name: Net-Worth-Planner-${{ github.ref_name }}-windows-portable.exe
+          asset_path: ./release/Net-Worth-Planner-${{ github.ref_name }}-ia32.exe
+          asset_name: Net-Worth-Planner-${{ github.ref_name }}-windows-ia32-setup.exe
           asset_content_type: application/octet-stream
 
   # Job 4: Build for macOS
@@ -173,7 +173,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.release-upload-url }}
-          asset_path: ./release/Net Worth Planner-${{ github.ref_name }}-x64.dmg
+          asset_path: ./release/Net-Worth-Planner-${{ github.ref_name }}-x64.dmg
           asset_name: Net-Worth-Planner-${{ github.ref_name }}-macos-x64.dmg
           asset_content_type: application/octet-stream
           
@@ -183,7 +183,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.release-upload-url }}
-          asset_path: ./release/Net Worth Planner-${{ github.ref_name }}-arm64.dmg
+          asset_path: ./release/Net-Worth-Planner-${{ github.ref_name }}-arm64.dmg
           asset_name: Net-Worth-Planner-${{ github.ref_name }}-macos-arm64.dmg
           asset_content_type: application/octet-stream
           
@@ -193,7 +193,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.release-upload-url }}
-          asset_path: ./release/Net Worth Planner-${{ github.ref_name }}-x64-mac.zip
+          asset_path: ./release/Net-Worth-Planner-${{ github.ref_name }}-x64.zip
           asset_name: Net-Worth-Planner-${{ github.ref_name }}-macos-x64.zip
           asset_content_type: application/zip
           
@@ -203,6 +203,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.release-upload-url }}
-          asset_path: ./release/Net Worth Planner-${{ github.ref_name }}-arm64-mac.zip
+          asset_path: ./release/Net-Worth-Planner-${{ github.ref_name }}-arm64.zip
           asset_name: Net-Worth-Planner-${{ github.ref_name }}-macos-arm64.zip
           asset_content_type: application/zip

@@ -90,14 +90,37 @@ fi
 
 print_success "Version updated to: $NEW_VERSION"
 
-# Ask for confirmation
+# Ask for build method
 echo
-print_warning "This will:"
-print_warning "  1. Commit the version change"
-print_warning "  2. Create and push tag 'v$NEW_VERSION'"
-print_warning "  3. Trigger automated build and release on GitHub"
+echo "How would you like to create the release?"
+echo "1) Local build and manual upload (recommended - no GitHub Actions limits)"
+echo "2) Push tag and trigger GitHub Actions (requires GitHub Actions storage)"
 echo
 
+read -p "Enter your choice (1-2): " build_choice
+
+case $build_choice in
+    1)
+        BUILD_LOCAL=true
+        print_warning "This will:"
+        print_warning "  1. Commit the version change"
+        print_warning "  2. Build locally for your platform"
+        print_warning "  3. Prepare files for manual GitHub release upload"
+        ;;
+    2)
+        BUILD_LOCAL=false
+        print_warning "This will:"
+        print_warning "  1. Commit the version change"
+        print_warning "  2. Create and push tag 'v$NEW_VERSION'"
+        print_warning "  3. Trigger automated build and release on GitHub"
+        ;;
+    *)
+        print_error "Invalid choice"
+        exit 1
+        ;;
+esac
+
+echo
 read -p "Continue? (y/N): " confirm
 if [[ ! $confirm =~ ^[Yy]$ ]]; then
     # Revert version change
@@ -111,16 +134,36 @@ git add package.json
 git commit -m "chore: bump version to $NEW_VERSION"
 print_success "Version change committed"
 
-# Create and push tag
-git tag "v$NEW_VERSION"
-print_success "Tag 'v$NEW_VERSION' created"
-
-# Push changes and tag
-git push origin main
-git push origin "v$NEW_VERSION"
-print_success "Changes and tag pushed to GitHub"
-
-echo
-print_success "🚀 Release process started!"
-print_info "GitHub Actions will now build and create the release automatically."
-print_info "You can monitor the progress at: https://github.com/$(git config --get remote.origin.url | sed 's/.*github.com[:/]\([^/]*\/[^.]*\).*/\1/')/actions"
+if [ "$BUILD_LOCAL" = true ]; then
+    # Local build workflow
+    print_header "Starting Local Build Process"
+    
+    # Create and push tag for version tracking
+    git tag "v$NEW_VERSION"
+    git push origin main
+    git push origin "v$NEW_VERSION"
+    print_success "Version tag pushed to GitHub"
+    
+    # Run local build
+    print_info "Running local build script..."
+    ./scripts/build-release.sh
+    
+    echo
+    print_success "🎉 Local build completed!"
+    print_info "Next steps:"
+    print_info "1. Run: ./scripts/upload-release.sh"
+    print_info "2. Or manually upload files from: release/uploads/"
+    print_info "3. Go to: https://github.com/$(git config --get remote.origin.url | sed 's/.*github.com[:/]\([^/]*\/[^.]*\).*/\1/')/releases"
+    
+else
+    # GitHub Actions workflow
+    git tag "v$NEW_VERSION"
+    git push origin main
+    git push origin "v$NEW_VERSION"
+    print_success "Changes and tag pushed to GitHub"
+    
+    echo
+    print_success "🚀 Release process started!"
+    print_info "GitHub Actions will now build and create the release automatically."
+    print_info "You can monitor the progress at: https://github.com/$(git config --get remote.origin.url | sed 's/.*github.com[:/]\([^/]*\/[^.]*\).*/\1/')/actions"
+fi

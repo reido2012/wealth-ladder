@@ -231,8 +231,19 @@ The script will:
 1. Check your working directory is clean
 2. Ask what type of version bump you want (patch/minor/major/custom)
 3. Update `package.json` with the new version
-4. Commit the change and create a git tag
-5. Push to GitHub, triggering the automated build
+4. Choose between local build or GitHub Actions
+5. Commit the change and create a git tag
+6. Either build locally or trigger GitHub Actions
+
+**Method 1a: Local Build Workflow (Recommended for Storage Limits)**
+
+```bash
+# Build locally and prepare for manual upload
+./scripts/build-release.sh
+
+# Upload using GitHub CLI or get manual instructions
+./scripts/upload-release.sh
+```
 
 **Method 2: Manual Tag Creation**
 
@@ -252,10 +263,16 @@ git push origin "vX.Y.Z"
 3. Choose patch/minor/major or enter a custom version
 4. The workflow will update the version and create the tag automatically
 
-### 🔄 What Happens Automatically
+### 🔄 Release Workflows
 
+**Local Build Workflow (Recommended)**
+1. **Build locally** on your development machine
+2. **Upload manually** to GitHub releases (avoids GitHub Actions storage limits)
+3. **Full control** over the build process and artifacts
+4. **Faster iteration** without waiting for CI/CD
+
+**GitHub Actions Workflow (Alternative)**
 When you push a version tag (e.g., `v0.0.7`), GitHub Actions will:
-
 1. **Create a GitHub Release** with auto-generated release notes
 2. **Build for all platforms** in parallel:
    - **Linux**: AppImage (x64)
@@ -263,6 +280,8 @@ When you push a version tag (e.g., `v0.0.7`), GitHub Actions will:
    - **macOS**: DMG + ZIP files (Intel x64 + Apple Silicon arm64)
 3. **Upload all artifacts** to the GitHub release automatically
 4. **Notify** when the release is ready
+
+*Note: GitHub Actions may hit storage limits on free plans. Local builds are recommended for consistent releases.*
 
 ### 🧪 Continuous Integration
 
@@ -277,6 +296,26 @@ The project includes two additional workflows:
 - Builds are isolated and reproducible
 - No secrets required for basic releases (uses `GITHUB_TOKEN`)
 
+### 🛠️ Local Build Details
+
+**What the local build creates:**
+- **Linux**: `Net-Worth-Planner-vX.X.X-linux-x64.AppImage`
+- Ready for immediate upload to GitHub releases
+- No external dependencies or GitHub Actions storage usage
+- Built on your local machine with your specific environment
+
+**Local build advantages:**
+- ✅ No GitHub Actions storage limits
+- ✅ Immediate feedback and control
+- ✅ Can test locally before releasing
+- ✅ Works offline
+- ✅ Faster than waiting for CI/CD
+
+**Requirements for local builds:**
+- Node.js 20+ installed
+- All dependencies installed (`npm install`)
+- Sufficient local disk space (~200MB for build artifacts)
+
 ### 📋 Release Checklist
 
 Before creating a release:
@@ -285,6 +324,7 @@ Before creating a release:
 - [ ] Working directory is clean (`git status`)
 - [ ] Tests pass locally (`npm run build`)
 - [ ] Version number follows semantic versioning
-- [ ] Consider updating release notes after automated creation
+- [ ] Local build completes successfully
+- [ ] Consider updating release notes after creation
 
 

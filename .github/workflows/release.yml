@@ -1,0 +1,208 @@
+name: Build and Release
+
+# Trigger on version tags (v1.0.0, v0.0.7, etc.)
+on:
+  push:
+    tags:
+      - 'v*'
+
+# Security: Define minimal required permissions
+permissions:
+  contents: write  # Required for creating releases and uploading assets
+  
+jobs:
+  # Job 1: Create the GitHub release
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      release-id: ${{ steps.create-release.outputs.id }}
+      release-upload-url: ${{ steps.create-release.outputs.upload_url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Extract version from tag
+        id: get-version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        
+      - name: Create GitHub Release
+        id: create-release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.get-version.outputs.tag }}
+          release_name: Net Worth Planner v${{ steps.get-version.outputs.version }}
+          body: |
+            ## Net Worth Planner v${{ steps.get-version.outputs.version }}
+            
+            ### 📥 Download Instructions
+            
+            **Desktop App (Recommended):**
+            - **Linux**: Download the `.AppImage` file
+            - **Windows**: Download the `.exe` installer  
+            - **macOS**: Download the `.dmg` file
+            
+            ### 🚀 New Features & Improvements
+            - See commit history for detailed changes
+            
+            ### 💡 How to Use
+            1. Download the appropriate file for your operating system
+            2. Install and run the application
+            3. Your financial data stays local on your computer
+            4. Enjoy offline functionality and automatic folder sync
+            
+            ---
+            
+            **Full Changelog**: https://github.com/${{ github.repository }}/compare/v${{ steps.get-version.outputs.version }}...HEAD
+          draft: false
+          prerelease: false
+
+  # Job 2: Build for Linux
+  build-linux:
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build application
+        run: npm run build
+        
+      - name: Build Linux AppImage
+        run: npm run dist -- --linux
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Upload Linux AppImage
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.release-upload-url }}
+          asset_path: ./release/Net Worth Planner-${{ github.ref_name }}.AppImage
+          asset_name: Net-Worth-Planner-${{ github.ref_name }}-linux.AppImage
+          asset_content_type: application/octet-stream
+
+  # Job 3: Build for Windows
+  build-windows:
+    needs: create-release
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build application
+        run: npm run build
+        
+      - name: Build Windows installer
+        run: npm run dist -- --win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Upload Windows NSIS installer
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.release-upload-url }}
+          asset_path: ./release/Net Worth Planner Setup ${{ github.ref_name }}.exe
+          asset_name: Net-Worth-Planner-${{ github.ref_name }}-windows-setup.exe
+          asset_content_type: application/octet-stream
+          
+      - name: Upload Windows portable
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.release-upload-url }}
+          asset_path: ./release/Net Worth Planner ${{ github.ref_name }}.exe
+          asset_name: Net-Worth-Planner-${{ github.ref_name }}-windows-portable.exe
+          asset_content_type: application/octet-stream
+
+  # Job 4: Build for macOS
+  build-macos:
+    needs: create-release
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build application
+        run: npm run build
+        
+      - name: Build macOS DMG
+        run: npm run dist -- --mac
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Note: For code signing, you'd add CSC_LINK and CSC_KEY_PASSWORD secrets
+          
+      - name: Upload macOS DMG (x64)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.release-upload-url }}
+          asset_path: ./release/Net Worth Planner-${{ github.ref_name }}-x64.dmg
+          asset_name: Net-Worth-Planner-${{ github.ref_name }}-macos-x64.dmg
+          asset_content_type: application/octet-stream
+          
+      - name: Upload macOS DMG (arm64)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.release-upload-url }}
+          asset_path: ./release/Net Worth Planner-${{ github.ref_name }}-arm64.dmg
+          asset_name: Net-Worth-Planner-${{ github.ref_name }}-macos-arm64.dmg
+          asset_content_type: application/octet-stream
+          
+      - name: Upload macOS ZIP (x64)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.release-upload-url }}
+          asset_path: ./release/Net Worth Planner-${{ github.ref_name }}-x64-mac.zip
+          asset_name: Net-Worth-Planner-${{ github.ref_name }}-macos-x64.zip
+          asset_content_type: application/zip
+          
+      - name: Upload macOS ZIP (arm64)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.release-upload-url }}
+          asset_path: ./release/Net Worth Planner-${{ github.ref_name }}-arm64-mac.zip
+          asset_name: Net-Worth-Planner-${{ github.ref_name }}-macos-arm64.zip
+          asset_content_type: application/zip

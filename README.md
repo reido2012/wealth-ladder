@@ -214,4 +214,77 @@ npm run pack
 - `npm run dist-all`: Build for macOS, Windows, Linux (from a properly configured host/CI)
 - `npm run pack`: Build web assets and create an unpacked app directory
 
+## 🚀 Automated Releases
+
+This project uses GitHub Actions for automated builds and releases. The system follows Google's engineering best practices with separation of concerns, automated testing, and multi-platform builds.
+
+### 📦 Creating a Release
+
+**Method 1: Using the Helper Script (Recommended)**
+
+```bash
+# Run the interactive release script
+./scripts/release.sh
+```
+
+The script will:
+1. Check your working directory is clean
+2. Ask what type of version bump you want (patch/minor/major/custom)
+3. Update `package.json` with the new version
+4. Commit the change and create a git tag
+5. Push to GitHub, triggering the automated build
+
+**Method 2: Manual Tag Creation**
+
+```bash
+# Update version in package.json manually, then:
+git add package.json
+git commit -m "chore: bump version to X.Y.Z"
+git tag "vX.Y.Z"
+git push origin main
+git push origin "vX.Y.Z"
+```
+
+**Method 3: GitHub UI (For Version Bumps Only)**
+
+1. Go to Actions → "Update Version" workflow
+2. Click "Run workflow"
+3. Choose patch/minor/major or enter a custom version
+4. The workflow will update the version and create the tag automatically
+
+### 🔄 What Happens Automatically
+
+When you push a version tag (e.g., `v0.0.7`), GitHub Actions will:
+
+1. **Create a GitHub Release** with auto-generated release notes
+2. **Build for all platforms** in parallel:
+   - **Linux**: AppImage (x64)
+   - **Windows**: NSIS installer + portable executable (x64, x86)
+   - **macOS**: DMG + ZIP files (Intel x64 + Apple Silicon arm64)
+3. **Upload all artifacts** to the GitHub release automatically
+4. **Notify** when the release is ready
+
+### 🧪 Continuous Integration
+
+The project includes two additional workflows:
+
+- **Build Test** (`build-test.yml`): Tests builds on every PR and main branch push
+- **Multi-platform Test**: Full build verification on main branch (Ubuntu, Windows, macOS)
+
+### 🔒 Security
+
+- Workflows use minimal required permissions
+- Builds are isolated and reproducible
+- No secrets required for basic releases (uses `GITHUB_TOKEN`)
+
+### 📋 Release Checklist
+
+Before creating a release:
+
+- [ ] All changes committed and pushed to main
+- [ ] Working directory is clean (`git status`)
+- [ ] Tests pass locally (`npm run build`)
+- [ ] Version number follows semantic versioning
+- [ ] Consider updating release notes after automated creation
+
 

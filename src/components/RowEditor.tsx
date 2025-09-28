@@ -10,7 +10,7 @@ export function RowEditor({ rows, setRows, title, gbpRate }: { rows: Row[]; setR
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-lg font-semibold">{title}</h3>
         <button
-          onClick={() => setRows([...rows, { id: uid(), name: '', amount: 0, currency: 'USD' }])}
+          onClick={() => setRows([...rows, { id: uid(), name: '', amount: 0, currency: 'USD', category: 'Other' }])}
           className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-black text-white hover:opacity-90"
         >
           <Plus size={16} /> Add
@@ -20,7 +20,7 @@ export function RowEditor({ rows, setRows, title, gbpRate }: { rows: Row[]; setR
         {rows.map((r, idx) => (
           <div key={r.id} className="grid grid-cols-12 gap-2 items-center">
             <input
-              className="col-span-5 rounded-xl border px-3 py-2"
+              className="col-span-4 rounded-xl border px-3 py-2"
               placeholder="Name"
               value={r.name}
               onChange={(e) => {
@@ -29,6 +29,22 @@ export function RowEditor({ rows, setRows, title, gbpRate }: { rows: Row[]; setR
                 setRows(copy);
               }}
             />
+            <select
+              className="col-span-2 rounded-xl border px-3 py-2"
+              value={r.category || ''}
+              onChange={(e) => {
+                const copy = [...rows];
+                copy[idx] = { ...r, category: e.target.value } as Row;
+                setRows(copy);
+              }}
+            >
+              <option value="">Category</option>
+              <option value="Housing">Housing</option>
+              <option value="Investments">Investments</option>
+              <option value="Cash">Cash</option>
+              <option value="Vehicles">Vehicles</option>
+              <option value="Other">Other</option>
+            </select>
             <NumberInput
               className="col-span-3 rounded-xl border px-3 py-2"
               placeholder="Amount"
@@ -40,7 +56,7 @@ export function RowEditor({ rows, setRows, title, gbpRate }: { rows: Row[]; setR
               }}
             />
             <select
-              className="col-span-2 rounded-xl border px-3 py-2"
+              className="col-span-1 rounded-xl border px-3 py-2"
               value={r.currency}
               onChange={(e) => {
                 const copy = [...rows];

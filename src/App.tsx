@@ -162,7 +162,14 @@ export default function App() {
     const assetUSD = assets.reduce((sum, r) => sum + convertToUSD(num(r.amount), r.currency, gbpRate), 0)
     const liabUSD = liabs.reduce((sum, r) => sum + convertToUSD(num(r.amount), r.currency, gbpRate), 0)
     const fixedUSD = fixed.reduce((sum, r) => sum + convertToUSD(num(r.amount), r.currency, gbpRate), 0)
-    return { assetUSD, liabUSD, fixedUSD, netWorth: assetUSD - liabUSD }
+    const nonHousingAssetsUSD = assets
+      .filter(r => (r.category || '') !== 'Housing')
+      .reduce((sum, r) => sum + convertToUSD(num(r.amount), r.currency, gbpRate), 0)
+    const nonHousingLiabsUSD = liabs
+      .filter(r => (r.category || '') !== 'Housing')
+      .reduce((sum, r) => sum + convertToUSD(num(r.amount), r.currency, gbpRate), 0)
+    const strictNetWorth = nonHousingAssetsUSD - nonHousingLiabsUSD
+    return { assetUSD, liabUSD, fixedUSD, netWorth: assetUSD - liabUSD, strictNetWorth }
   }, [assets, liabs, fixed, gbpRate])
   const leftover = useMemo(() => income - totals.fixedUSD, [income, totals.fixedUSD])
 
@@ -799,6 +806,7 @@ export default function App() {
               <li>Assets: <span className="font-semibold">{currencyFormat(totals.assetUSD)}</span></li>
               <li>Liabilities: <span className="font-semibold">{currencyFormat(totals.liabUSD)}</span></li>
               <li>Net worth: <span className="font-semibold">{currencyFormat(totals.netWorth)}</span></li>
+              <li>Strict net worth (ex-housing): <span className="font-semibold">{currencyFormat(totals.strictNetWorth)}</span></li>
               <li>Fixed costs monthly: <span className="font-semibold">{currencyFormat(totals.fixedUSD)}</span></li>
               <li>Leftover after costs: <span className="font-semibold">{currencyFormat(leftover)}</span></li>
             </ul>

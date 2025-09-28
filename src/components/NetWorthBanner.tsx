@@ -7,6 +7,12 @@ export function NetWorthBanner({ totals, folderHandle, folderPath, saveStatus }:
         <div>
           <div className="text-xs uppercase tracking-wide opacity-90">Current net worth</div>
           <div className="text-4xl md:text-5xl font-bold mt-1">{currencyFormat(totals.netWorth)}</div>
+          {typeof totals.strictNetWorth === 'number' && (
+            <div className="mt-2 text-sm opacity-95">
+              <span className="font-medium">Strict net worth</span>: {currencyFormat(totals.strictNetWorth)}
+              <span className="ml-2 opacity-80">(excludes housing)</span>
+            </div>
+          )}
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           <div className="rounded-2xl bg-white/15 px-4 py-3">

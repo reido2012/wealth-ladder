@@ -36,7 +36,14 @@ export function NetWorthTab({
     const assetUSD = monthData.assets.reduce((sum, r) => sum + (r.currency === 'USD' ? r.amount : r.amount * gbpRate), 0)
     const liabUSD = monthData.liabilities.reduce((sum, r) => sum + (r.currency === 'USD' ? r.amount : r.amount * gbpRate), 0)
     const fixedUSD = monthData.fixedCosts.reduce((sum, r) => sum + (r.currency === 'USD' ? r.amount : r.amount * gbpRate), 0)
-    return { assetUSD, liabUSD, fixedUSD, netWorth: assetUSD - liabUSD }
+    const nonHousingAssetsUSD = monthData.assets
+      .filter(r => (r.category || '') !== 'Housing')
+      .reduce((sum, r) => sum + (r.currency === 'USD' ? r.amount : r.amount * gbpRate), 0)
+    const nonHousingLiabsUSD = monthData.liabilities
+      .filter(r => (r.category || '') !== 'Housing')
+      .reduce((sum, r) => sum + (r.currency === 'USD' ? r.amount : r.amount * gbpRate), 0)
+    const strictNetWorth = nonHousingAssetsUSD - nonHousingLiabsUSD
+    return { assetUSD, liabUSD, fixedUSD, netWorth: assetUSD - liabUSD, strictNetWorth }
   }, [monthData])
 
   const goToPrevMonth = () => {
